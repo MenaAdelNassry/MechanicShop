@@ -1,0 +1,40 @@
+@baseUrl = http://localhost:5001
+@apiVersion = 1.0
+@contentType = application/json
+
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDEzNzk3LCJleHAiOjE3ODk0MTczOTcsImlhdCI6MTc4OTQxMzc5NywiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.Lhg8lRfh6mDc6fJiF45oQDH4bkbdlan-TigBIAU9DaE
+
+### 2. Create Employee (Requires ManagerOnly Permission)
+# @name createEmployee
+POST {{baseUrl}}/api/v{{apiVersion}}/employees
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Maged",
+  "lastName": "Adel",
+  "email": "maged.adel@mechanicshop.com",
+  "phoneNumber": "01021245678",
+  "role": "Labor"
+}
+
+### 3. Get All Employees
+GET {{baseUrl}}/api/v{{apiVersion}}/employees
+Authorization: Bearer {{authToken}}
+
+### 4. Filter Employees by Role
+GET {{baseUrl}}/api/v{{apiVersion}}/employees?role=Labor
+Authorization: Bearer {{authToken}}
+
+### 5. Get Employee By ID
+@employeeId = 01a0a0ee-cfa6-7104-ae69-63c3b23f4b38
+GET {{baseUrl}}/api/v{{apiVersion}}/employees/{{employeeId}}
+Authorization: Bearer {{authToken}}
+
+### 6. Resend Employee Setup Email
+POST {{baseUrl}}/identity/resend-setup-email
+Content-Type: {{contentType}}
+
+{
+  "email": "maged.adel@mechanicshop.com"
+}

@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:5001
+@apiVersion = 1.0
+@contentType = application/json
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDM2ODI5LCJleHAiOjE3ODk0NDA0MjksImlhdCI6MTc4OTQzNjgyOSwiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.NAEJjn7M0EvVF2r-s9J8Zh_Z6m2TBoDbgfJOLA0AtZY
+
+### 1. Retrieve All Active Repair Tasks
+GET {{baseUrl}}/api/v{{apiVersion}}/repair-tasks
+Authorization: Bearer {{authToken}}
+
+### 2. Create New Repair Task with Optional Required Parts (Manager Only)
+# @name createRepairTask
+POST {{baseUrl}}/api/v{{apiVersion}}/repair-tasks
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Front Brake Pads Replacement",
+  "laborCost": 450.00,
+  "estimatedDurationInMins": 75,
+  "parts": [
+    {
+      "inventoryItemId": "86375a12-715e-4aa4-aad9-c0f9ccf44a14",
+      "quantity": 3
+    }
+  ]
+}
+
+### Captured Repair Task ID
+@repairTaskId = 01a0a2c9-d5dc-7b25-9031-2cd12ac941a9
+
+### 3. Get Repair Task Details by ID
+GET {{baseUrl}}/api/v{{apiVersion}}/repair-tasks/{{repairTaskId}}
+Authorization: Bearer {{authToken}}
+
+### 4. Update Existing Repair Task (Manager Only)
+PUT {{baseUrl}}/api/v{{apiVersion}}/repair-tasks/{{repairTaskId}}
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Front & Rear Brake Pads Replacement",
+  "laborCost": 750.00,
+  "estimatedDurationInMins": 90,
+  "parts": [
+    {
+      "inventoryItemId": "86375a12-715e-4aa4-aad9-c0f9ccf44a14",
+      "quantity": 2
+    }
+  ]
+}
+
+### 5. Soft Delete Repair Task (Manager Only)
+DELETE {{baseUrl}}/api/v{{apiVersion}}/repair-tasks/{{repairTaskId}}
+Authorization: Bearer {{authToken}}
+
+### 6. List All Soft-Deleted / Inactive Repair Tasks (Manager Only)
+GET {{baseUrl}}/api/v{{apiVersion}}/repair-tasks/deleted
+Authorization: Bearer {{authToken}}
+
+### 7. Reactivate Previously Deactivated Repair Task (Manager Only)
+PUT {{baseUrl}}/api/v{{apiVersion}}/repair-tasks/{{repairTaskId}}/activate
+Authorization: Bearer {{authToken}}

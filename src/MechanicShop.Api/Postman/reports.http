@@ -1,0 +1,25 @@
+@baseUrl = http://localhost:5001
+@apiVersion = 1.0
+@contentType = application/json
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDM2ODI5LCJleHAiOjE3ODk0NDA0MjksImlhdCI6MTc4OTQzNjgyOSwiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.NAEJjn7M0EvVF2r-s9J8Zh_Z6m2TBoDbgfJOLA0AtZY
+
+### 1. Get Revenue Financial Summary & Daily Breakdown (Manager Only)
+GET {{baseUrl}}/api/v{{apiVersion}}/reports/revenue/summary?fromDate=2026-09-14&toDate=2026-09-17&timeZoneId=Africa/Cairo
+Authorization: Bearer {{authToken}}
+
+### 2. Get Technician Productivity & Labor Efficiency Metrics (Manager Only)
+GET {{baseUrl}}/api/v{{apiVersion}}/reports/revenue/technicians?fromDate=2026-09-01&toDate=2026-09-14&timeZoneId=Africa/Cairo
+Authorization: Bearer {{authToken}}
+
+### 3. Filter Productivity for a Specific Technician / Labor ID (Manager Only)
+@laborId = 01a08e78-f992-7637-bba5-1c9251dc9d09
+GET {{baseUrl}}/api/v{{apiVersion}}/reports/revenue/technicians?fromDate=2026-09-01&toDate=2026-09-14&laborId={{laborId}}&timeZoneId=Africa/Cairo
+Authorization: Bearer {{authToken}}
+
+### 4. Get Inventory Parts Consumption Analytics
+GET {{baseUrl}}/api/v{{apiVersion}}/reports/revenue/parts-usage?fromDate=2026-09-01&toDate=2026-09-14&timeZoneId=Africa/Cairo
+Authorization: Bearer {{authToken}}
+
+### 5. Get Daily Cash Drawer Summary & Payment Channel Reconciliation (Manager Only)
+GET {{baseUrl}}/api/v{{apiVersion}}/reports/revenue/cash-drawer?date=2026-09-15&timeZoneId=Africa/Cairo
+Authorization: Bearer {{authToken}}

@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <InternalsVisibleTo Include="MechanicShop.Domain.UnitTests" />
+        <InternalsVisibleTo Include="MechanicShop.Application.UnitTests" />
+        <InternalsVisibleTo Include="MechanicShop.Tests.Common" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="MediatR" />
+    </ItemGroup>
+</Project>

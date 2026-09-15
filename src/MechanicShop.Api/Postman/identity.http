@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:5001
+@contentType = application/json
+
+### 1. Authenticate & Obtain JWT Token Pair
+# @name generateToken
+POST {{baseUrl}}/identity/token/generate
+Content-Type: {{contentType}}
+
+{
+  "email": "pm@localhost",
+  "password": "P@ssw0rd!1"
+}
+
+### Store token for downstream requests
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDEzNzk3LCJleHAiOjE3ODk0MTczOTcsImlhdCI6MTc4OTQxMzc5NywiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.Lhg8lRfh6mDc6fJiF45oQDH4bkbdlan-TigBIAU9DaE
+@refreshToken = hvghSVwTKc7Ktv+WE4OlQ30XdeqTqqpd3lNp2L8iEtI=
+
+### 2. Refresh Access Token using Refresh Token
+POST {{baseUrl}}/identity/token/refresh-token
+Content-Type: {{contentType}}
+
+{
+  "ExpiredAccessToken": "{{accessToken}}",
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 3. Get Current Authenticated User Claims & Profile
+GET {{baseUrl}}/identity/current-user/claims
+Authorization: Bearer {{accessToken}}
+
+### 4. Activate New Employee Account & Set Initial Password
+POST {{baseUrl}}/identity/set-password
+Content-Type: {{contentType}}
+
+{
+  "email": "maged.adel@mechanicshop.com",
+  "token": "CfDJ8KsK1ZH7tKFLmMIKedKSd3Nv5qiO33MfE/Il874H4rkg+PKnZBvd31hAAoLiv3ynNYGiKwwqaFPfGlVzLoKRREopcnA/dNz0Dk8E90tw2axoX/54bZ9saNPOaWt3Xf/if9XvNm+AcBMgdUbjSzzIQ2+XnoF3nwi392qsxyjsZqDh35V7Gf57oFV3EaR0ygfVt46upbfCJRR9eF6knTrpOeoVquzt6olKooH2w7Zo9Bvp",
+  "newPassword": "SecurePassword123!"
+}
+
+### 5. Reset Password using Reset Token
+POST {{baseUrl}}/identity/reset-password
+Content-Type: {{contentType}}
+
+{
+  "email": "hany.mechanic@mechanicshop.com",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDEyOTA3LCJleHAiOjE3ODk0MTY1MDcsImlhdCI6MTc4OTQxMjkwNywiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.ulCwjfnJS_lZkD9MVCJrmjiCOm8Oa5WV0oiOQc1g-_U",
+  "newPassword": "BrandNewPassword123!"
+}
+
+### 6. Resend Setup / Invitation Email
+POST {{baseUrl}}/identity/resend-setup-email
+Content-Type: {{contentType}}
+
+{
+  "email": "hany.mechanic@mechanicshop.com"
+}
+
+### 7. Forgot Password
+POST {{baseUrl}}/identity/forgot-password
+Content-Type: {{contentType}}
+
+{
+  "email": "hany.mechanic@mechanicshop.com"
+}
+
+### 8. Revoke Refresh Token (Logout)
+POST {{baseUrl}}/identity/token/revoke
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}

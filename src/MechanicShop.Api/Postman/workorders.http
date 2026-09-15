@@ -1,0 +1,90 @@
+@baseUrl = http://localhost:5001
+@apiVersion = 1.0
+@contentType = application/json
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDM2ODI5LCJleHAiOjE3ODk0NDA0MjksImlhdCI6MTc4OTQzNjgyOSwiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.NAEJjn7M0EvVF2r-s9J8Zh_Z6m2TBoDbgfJOLA0AtZY
+
+### 1. Create a Work Order (Manager Only)
+# @name createWorkOrder
+POST {{baseUrl}}/api/v{{apiVersion}}/workorders
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "spot": "D",
+  "vehicleId": "13c80914-41ad-4d46-b7bb-60f6c89ad01e",
+  "laborId": "01a08e78-f992-74e6-802f-ebbe006c6a28",
+  "startAtUtc": "2026-09-18T14:00:00Z",
+  "repairTaskIds": [
+    "a770cc6e-0c8b-4ac5-9ee6-6928682bd47e"
+  ]
+}
+
+### Captured Work Order ID
+@workOrderId = 01a08e80-e898-732c-b303-629653fe6667
+@workOrderId2 = 01a08e80-e898-7653-b27b-d765ef8e5a7f
+
+### 2. Retrieve Paginated Work Orders with Custom Filters
+GET {{baseUrl}}/api/v{{apiVersion}}/workorders?page=1&pageSize=10&startDateFrom=2026-09-14T00:00:00&SortDirection=asc&SortColumn=startAtUtc
+Authorization: Bearer {{authToken}}
+
+### 3. Get Work Order Details by ID
+GET {{baseUrl}}/api/v{{apiVersion}}/workorders/{{workOrderId}}
+Authorization: Bearer {{authToken}}
+
+### 4. Relocate / Reschedule Work Order to Another Bay or Time (Manager Only)
+PUT {{baseUrl}}/api/v{{apiVersion}}/workorders/{{workOrderId}}/relocation
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "newStartAtUtc": "2026-09-15T21:00:00Z",
+  "newSpot": "C"
+}
+
+### 5. Reassign Work Order to a Different Technician (Manager Only)
+PUT {{baseUrl}}/api/v{{apiVersion}}/workorders/{{workOrderId}}/labor
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "laborId": "01a08e78-f992-774d-9941-8e39407c7f39"
+}
+
+### 6. Update Repair Tasks on Scheduled Work Order (Manager Only)
+PUT {{baseUrl}}/api/v{{apiVersion}}/workorders/{{workOrderId}}/repair-task
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "repairTaskIds": [
+    "a770cc6e-0c8b-4ac5-9ee6-6928682bd47e",
+    "616aebb1-d515-4b40-8d47-8d5c0b67a313",
+    "a376b5d1-6b2d-4dd8-883e-d3d1721c1316"
+  ]
+}
+
+### 7. Transition State to InProgress (Technician or Manager)
+PUT {{baseUrl}}/api/v{{apiVersion}}/workorders/{{workOrderId}}/state
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "state": "Completed"
+}
+
+### 8. Transition State to Completed (Technician or Manager)
+PUT {{baseUrl}}/api/v{{apiVersion}}/workorders/{{workOrderId2}}/state
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "state": "Completed"
+}
+
+### 9. Cancel Work Order (Technician or Manager)
+POST {{baseUrl}}/api/v{{apiVersion}}/workorders/{{workOrderId2}}/cancel
+Authorization: Bearer {{authToken}}
+
+### 10. Get Daily Bay Schedule Grid
+GET {{baseUrl}}/api/v{{apiVersion}}/workorders/schedule?date=2026-09-13&timeZoneId=Africa/Cairo
+Authorization: Bearer {{authToken}}

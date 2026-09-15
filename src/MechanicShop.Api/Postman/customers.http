@@ -1,0 +1,67 @@
+@baseUrl = http://localhost:5001
+@apiVersion = 1.0
+@contentType = application/json
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDE3NzM0LCJleHAiOjE3ODk0MjEzMzQsImlhdCI6MTc4OTQxNzczNCwiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.aD-TyUqO1W_XaAp-1UErHuFISeUmRSRkeCttYcAvwR0
+
+### 1. Create New Customer with Vehicle
+# @name createCustomer
+POST {{baseUrl}}/api/v{{apiVersion}}/customers
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Tarek",
+  "lastName": "El-Sayed",
+  "phoneNumber": "01123551789",
+  "email": "tarek.customer@gmail.com",
+  "vehicles": [
+    {
+      "make": "Toyota",
+      "model": "Corolla",
+      "year": 2022,
+      "licensePlate": "ALZ1234"
+    }
+  ]
+}
+
+### 2. Get Paginated Customers List
+GET {{baseUrl}}/api/v{{apiVersion}}/customers?page=1&pageSize=10
+Authorization: Bearer {{authToken}}
+
+### 3. Search Customer by Term
+GET {{baseUrl}}/api/v{{apiVersion}}/customers?searchTerm=Tarek
+Authorization: Bearer {{authToken}}
+
+### 4. Get Customer Details By ID
+@customerId = 01a0a0ae-0927-79d8-a476-cf9fb916799a
+GET {{baseUrl}}/api/v{{apiVersion}}/customers/{{customerId}}
+Authorization: Bearer {{authToken}}
+
+### 5. Get Comprehensive Customer History (Manager Only)
+GET {{baseUrl}}/api/v{{apiVersion}}/customers/{{customerId}}/history
+Authorization: Bearer {{authToken}}
+
+### 6. Update Customer and Vehicles
+PUT {{baseUrl}}/api/v{{apiVersion}}/customers/{{customerId}}
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Tarek",
+  "lastName": "El-Sayed",
+  "phoneNumber": "01123551789",
+  "email": "tarek.customer@gmail.com",
+  "vehicles": [
+    {
+      "vehicleId": "01A0A0D2-8D2F-791D-B8C8-C0AC779B69FD",
+      "make": "Toyota",
+      "model": "Corolla",
+      "year": 2023,
+      "licensePlate": "ALL1234"
+    }
+  ]
+}
+
+### 7. Delete Customer
+DELETE {{baseUrl}}/api/v{{apiVersion}}/customers/{{customerId}}
+Authorization: Bearer {{authToken}}

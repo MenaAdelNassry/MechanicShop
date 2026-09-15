@@ -1,0 +1,70 @@
+@baseUrl = http://localhost:5001
+@apiVersion = 1.0
+@contentType = application/json
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDIxNDg5LCJleHAiOjE3ODk0MjUwODksImlhdCI6MTc4OTQyMTQ4OSwiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.v4cmzh2H2Mp3N3j7Wzbz_JB39oNcT1nws6Zkv1sc2gY
+
+### 1. Issue Invoice for a Completed Work Order (Manager Only)
+# @name issueInvoice
+POST {{baseUrl}}/api/v{{apiVersion}}/invoices/workorders/01a08e80-e898-732c-b303-629653fe6667
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "discountAmount": 10.00
+}
+
+### Captured Invoice ID
+@invoiceId = 01a0a1e4-a198-753a-8936-b38541f5a972
+
+### 2. Get Paginated Invoices List (Filtered)
+GET {{baseUrl}}/api/v{{apiVersion}}/invoices?page=1&pageSize=10&status=Unpaid&searchTerm=01287654321
+Authorization: Bearer {{authToken}}
+
+### 3. Get Invoice Details by ID
+GET {{baseUrl}}/api/v{{apiVersion}}/invoices/{{invoiceId}}
+Authorization: Bearer {{authToken}}
+
+### 4. Download Invoice as PDF File
+GET {{baseUrl}}/api/v{{apiVersion}}/invoices/{{invoiceId}}/pdf
+Authorization: Bearer {{authToken}}
+
+### 5. Record Manual Payment (Cash, POS, Bank Transfer)
+POST {{baseUrl}}/api/v{{apiVersion}}/invoices/{{invoiceId}}/payments
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "amount": 1.50,
+  "method": "BankTransfer",
+  "transactionReference": "TXN9876543210"
+}
+
+### 6. Create Stripe Checkout Session Link for Remaining Balance
+POST {{baseUrl}}/api/v{{apiVersion}}/invoices/{{invoiceId}}/create-payment-link
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "successUrl": "http://localhost:3000/invoices/{{invoiceId}}/success",
+  "cancelUrl": "http://localhost:3000/invoices/{{invoiceId}}/cancel"
+}
+
+### 7. Receive & Process Stripe Webhook Event (Public Endpoint)
+POST {{baseUrl}}/api/v{{apiVersion}}/invoices/stripe-webhook
+Content-Type: {{contentType}}
+Stripe-Signature: t=1614555555,v1=test_signature_payload
+
+{
+  "id": "evt_test_webhook_001",
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_session_001",
+      "metadata": {
+        "invoiceId": "{{invoiceId}}"
+      },
+      "amount_total": 62500,
+      "payment_status": "paid"
+    }
+  }
+}

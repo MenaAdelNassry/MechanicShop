@@ -1,0 +1,78 @@
+@baseUrl = http://localhost:5001
+@apiVersion = 1.0
+@contentType = application/json
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxOWE1OTEyOS02YzIwLTQxN2EtODM0ZC0xMWEyMDhkMzJkOTYiLCJlbWFpbCI6InBtQGxvY2FsaG9zdCIsInVuaXF1ZV9uYW1lIjoiUHJpbWFyeSBNYW5hZ2VyIiwiRW1wbG95ZWVJZCI6IjAxYTA4ZTc4LWY5OTItN2E0My05NGFiLTI2OTkzNWE2NTMyOCIsInJvbGUiOiJNYW5hZ2VyIiwibmJmIjoxNzg5NDM2ODI5LCJleHAiOjE3ODk0NDA0MjksImlhdCI6MTc4OTQzNjgyOSwiaXNzIjoiTWVjaGFuaWNTaG9wQXBpIiwiYXVkIjoiTWVjaGFuaWNTaG9wQ2xpZW50cyJ9.NAEJjn7M0EvVF2r-s9J8Zh_Z6m2TBoDbgfJOLA0AtZY
+
+### 1. Retrieve All Inventory Items
+GET {{baseUrl}}/api/v{{apiVersion}}/inventory
+Authorization: Bearer {{authToken}}
+
+### 2. Retrieve Items Reaching or Below Reorder Level (Low Stock)
+GET {{baseUrl}}/api/v{{apiVersion}}/inventory/low-stock
+Authorization: Bearer {{authToken}}
+
+### 3. Add New Inventory Item
+# @name createItem
+POST {{baseUrl}}/api/v{{apiVersion}}/inventory
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Synthetic Engine Oil 5W-30 (1L)",
+  "cost": 320.00,
+  "stockQuantity": 12,
+  "reorderLevel": 5
+}
+
+### Captured Item ID
+@itemId = 01a0a1a1-d571-7a54-b8b2-86ed387080af
+
+### 4. Get Inventory Item by ID
+GET {{baseUrl}}/api/v{{apiVersion}}/inventory/{{itemId}}
+Authorization: Bearer {{authToken}}
+
+### 5. Restock Item (Receive Supplier Goods)
+POST {{baseUrl}}/api/v{{apiVersion}}/inventory/{{itemId}}/restock
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "quantity": 10
+}
+
+### 6. Adjust Stock Quantity Manually (Variance, Audit, or Damaged Items)
+POST {{baseUrl}}/api/v{{apiVersion}}/inventory/{{itemId}}/adjust
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "quantityAdjustment": -2,
+  "reason": "Damaged bottle during shelf restocking"
+}
+
+### 7. Update Item Metadata & Cost/Reorder Level
+PUT {{baseUrl}}/api/v{{apiVersion}}/inventory/{{itemId}}
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Synthetic Engine Oil 5W-30 (1L - Premium)",
+  "cost": 450.00,
+  "reorderLevel": 8
+}
+
+### 8. Get Transaction History for Item Audit
+GET {{baseUrl}}/api/v{{apiVersion}}/inventory/{{itemId}}/transactions
+Authorization: Bearer {{authToken}}
+
+### 9. Soft Delete / Archive Item
+DELETE {{baseUrl}}/api/v{{apiVersion}}/inventory/{{itemId}}
+Authorization: Bearer {{authToken}}
+
+### 10. List All Soft-Deleted / Archived Items
+GET {{baseUrl}}/api/v{{apiVersion}}/inventory/archived
+Authorization: Bearer {{authToken}}
+
+### 11. Restore Soft-Deleted Item
+POST {{baseUrl}}/api/v{{apiVersion}}/inventory/{{itemId}}/restore
+Authorization: Bearer {{authToken}}

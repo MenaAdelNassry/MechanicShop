@@ -1,0 +1,18 @@
+@baseUrl = http://localhost:5001
+@apiVersion = 1.0
+@contentType = application/json
+
+### Captured Public Tracking Token (Sent via SMS / Email)
+@trackingToken = 4AA44B0E-C197-4616-A238-009BC4FCD3AF
+
+### 1. Get Live Public Vehicle Tracking Details (Anonymous Access - No Token Required)
+GET {{baseUrl}}/api/v{{apiVersion}}/tracking/{{trackingToken}}
+
+### 2. Request Stripe Checkout Session for Invoice Balance (Anonymous Access)
+POST {{baseUrl}}/api/v{{apiVersion}}/tracking/{{trackingToken}}/pay
+Content-Type: {{contentType}}
+
+{
+  "successUrl": "http://localhost:3000/track/{{trackingToken}}?payment=success",
+  "cancelUrl": "http://localhost:3000/track/{{trackingToken}}?payment=cancelled"
+}
