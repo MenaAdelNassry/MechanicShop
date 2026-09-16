@@ -1,8 +1,6 @@
 ﻿using MechanicShop.Domain.Common.Results;
 using MechanicShop.Domain.Workorders.Enums;
 
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-
 namespace MechanicShop.Application.Common.Errors;
 
 public static class ApplicationErrors
@@ -62,7 +60,7 @@ public static class ApplicationErrors
         public static readonly Error VehicleSchedulingConflict =
             Error.Conflict("WorkOrder.VehicleSchedulingConflict", "The vehicle already has an overlapping WorkOrder.");
 
-        public static Error SpotNotAvailable(Spot spot, DateTimeOffset startAt, DateTimeOffset endAt)
+        public static Error SpotNotAvailable(string spot, DateTimeOffset startAt, DateTimeOffset endAt)
         {
             return Error.Conflict("WorkOrder.SpotNotAvailable", $"The spot {spot} is not available from {startAt} to {endAt}.");
         }
@@ -119,5 +117,17 @@ public static class ApplicationErrors
             Error.NotFound("Employee.NotFound", "Employee does not exist.");
         public static readonly Error DuplicateEmail =
             Error.Conflict("Employee.DuplicateEmail", "An employee with this email already exists.");
+    }
+
+    public static class ServiceBays
+    {
+        public static readonly Error NotFound =
+            Error.NotFound("ServiceBay.NotFound", "Service bay does not exist.");
+
+        public static readonly Error DuplicateName =
+            Error.Conflict("ServiceBay.DuplicateName", "A service bay with this name already exists.");
+
+        public static readonly Error HasActiveWorkOrders =
+            Error.Conflict("ServiceBay.HasActiveWorkOrders", "Cannot delete service bay with active work orders.");
     }
 }

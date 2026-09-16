@@ -8,7 +8,7 @@ public sealed record CustomerWorkOrderTimelineDto(
     DateTimeOffset StartAtUtc,
     DateTimeOffset EndAtUtc,
     WorkOrderState State,
-    Spot Spot,
+    Guid SpotId,
     string? LaborName,
     decimal TotalLaborCost,
     decimal TotalPartsCost,

@@ -10,6 +10,7 @@ using MechanicShop.Domain.Employees;
 using MechanicShop.Domain.Identity;
 using MechanicShop.Domain.Inventory;
 using MechanicShop.Domain.RepairTasks;
+using MechanicShop.Domain.Spots;
 using MechanicShop.Domain.Workorders;
 using MechanicShop.Domain.Workorders.Billing;
 using MechanicShop.Infrastructure.Identity;
@@ -35,6 +36,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<RepairTaskPart> RepairTaskParts => Set<RepairTaskPart>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<ServiceBay> ServiceBays => Set<ServiceBay>();
 
     public override int SaveChanges()
     {

@@ -1,5 +1,4 @@
 using MechanicShop.Domain.Common.Results;
-using MechanicShop.Domain.Workorders.Enums;
 
 using MediatR;
 
@@ -8,4 +7,4 @@ namespace MechanicShop.Application.Features.WorkOrders.Commands.RelocateWorkOrde
 public sealed record RelocateWorkOrderCommand(
     Guid WorkOrderId,
     DateTimeOffset NewStartAt,
-    Spot NewSpot) : IRequest<Result<Updated>>;
+    Guid NewSpotId) : IRequest<Result<Updated>>;

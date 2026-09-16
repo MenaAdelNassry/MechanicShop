@@ -36,7 +36,7 @@ public sealed class GetWorkOrdersQueryHandler(IAppDbContext context)
               {
                   WorkOrderId = wo.Id,
                   InvoiceId = wo.Invoice == null ? null : wo.Invoice.Id,
-                  Spot = wo.Spot,
+                  SpotId = wo.SpotId,
                   StartAtUtc = wo.StartAtUtc,
                   EndAtUtc = wo.EndAtUtc,
                   Vehicle = wo.Vehicle == null ? null : new VehicleDto(
@@ -103,9 +103,9 @@ public sealed class GetWorkOrdersQueryHandler(IAppDbContext context)
             query = query.Where(wo => wo.EndAtUtc <= searchQuery.EndDateTo.Value);
         }
 
-        if (searchQuery.Spot.HasValue)
+        if (searchQuery.SpotId.HasValue && searchQuery.SpotId != Guid.Empty)
         {
-            query = query.Where(wo => wo.Spot == searchQuery.Spot.Value);
+            query = query.Where(wo => wo.SpotId == searchQuery.SpotId.Value);
         }
 
         return query;
@@ -143,7 +143,9 @@ public sealed class GetWorkOrdersQueryHandler(IAppDbContext context)
             "startat" or "startatutc" => isDescending ? query.OrderByDescending(wo => wo.StartAtUtc) : query.OrderBy(wo => wo.StartAtUtc),
             "endat" or "endatutc" => isDescending ? query.OrderByDescending(wo => wo.EndAtUtc) : query.OrderBy(wo => wo.EndAtUtc),
             "state" => isDescending ? query.OrderByDescending(wo => wo.State) : query.OrderBy(wo => wo.State),
-            "spot" => isDescending ? query.OrderByDescending(wo => wo.Spot) : query.OrderBy(wo => wo.Spot),
+            "spot" => isDescending
+                ? query.OrderByDescending(wo => wo.Spot != null ? wo.Spot.Name : string.Empty)
+                : query.OrderBy(wo => wo.Spot != null ? wo.Spot.Name : string.Empty),
             "total" => isDescending
                 ? query.OrderByDescending(wo => wo.RepairTasks.Sum(rt => rt.LaborCost) + wo.RepairTasks.SelectMany(rt => rt.Parts).Sum(p => p.Cost * p.Quantity))
                 : query.OrderBy(wo => wo.RepairTasks.Sum(rt => rt.LaborCost) + wo.RepairTasks.SelectMany(rt => rt.Parts).Sum(p => p.Cost * p.Quantity)),

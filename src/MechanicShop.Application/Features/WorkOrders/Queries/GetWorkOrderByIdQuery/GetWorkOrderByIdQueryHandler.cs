@@ -26,6 +26,7 @@ public sealed class GetWorkOrderByIdQueryHandler(
             .Include(a => a.Vehicle!)
                 .ThenInclude(v => v.Customer)
             .Include(a => a.Invoice)
+            .Include(a => a.Spot)
             .AsSplitQuery()
             .FirstOrDefaultAsync(a => a.Id == query.WorkOrderId, ct);
 

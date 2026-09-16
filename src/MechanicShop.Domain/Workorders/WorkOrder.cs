@@ -1,7 +1,10 @@
+using System;
+
 using MechanicShop.Domain.Common;
 using MechanicShop.Domain.Common.Results;
 using MechanicShop.Domain.Customers.Vehicles;
 using MechanicShop.Domain.Employees;
+using MechanicShop.Domain.Spots;
 using MechanicShop.Domain.Workorders.Billing;
 using MechanicShop.Domain.Workorders.Enums;
 using MechanicShop.Domain.Workorders.Events;
@@ -11,20 +14,22 @@ namespace MechanicShop.Domain.Workorders;
 public sealed class WorkOrder : AuditableEntity
 {
     public Guid VehicleId { get; private set; }
+    public Guid SpotId { get; private set; }
     public DateTimeOffset StartAtUtc { get; private set; }
     public DateTimeOffset EndAtUtc { get; private set; }
     public Guid LaborId { get; private set; }
-    public Spot Spot { get; private set; }
     public WorkOrderState State { get; private set; }
     public Guid TrackingToken { get; private set; }
-
-    public Employee? Labor { get; internal set; }
-    public Vehicle? Vehicle { get; internal set; }
-    public Invoice? Invoice { get; internal set; }
-
     public DateTimeOffset? ActualStartedAtUtc { get; private set; }
     public DateTimeOffset? ActualCompletedAtUtc { get; private set; }
 
+    // Navigation properties
+    public Employee? Labor { get; internal set; }
+    public Vehicle? Vehicle { get; internal set; }
+    public Invoice? Invoice { get; internal set; }
+    public ServiceBay? Spot { get; private set; }
+
+    // Computed properties
     public decimal TotalPartsCost => _repairTasks.SelectMany(rt => rt.Parts).Sum(p => p.Cost * p.Quantity);
     public decimal TotalLaborCost => _repairTasks.Sum(rt => rt.LaborCost);
     public decimal Total => TotalPartsCost + TotalLaborCost;
@@ -49,7 +54,7 @@ public sealed class WorkOrder : AuditableEntity
         DateTimeOffset startAt,
         DateTimeOffset endAt,
         Guid laborId,
-        Spot spot,
+        Guid spotId,
         WorkOrderState state,
         List<WorkOrderTask> repairTasks,
         Guid trackingToken)
@@ -59,7 +64,7 @@ public sealed class WorkOrder : AuditableEntity
         StartAtUtc = startAt;
         EndAtUtc = endAt;
         LaborId = laborId;
-        Spot = spot;
+        SpotId = spotId;
         State = state;
         _repairTasks = repairTasks;
         TrackingToken = trackingToken;
@@ -71,18 +76,18 @@ public sealed class WorkOrder : AuditableEntity
         DateTimeOffset startAt,
         DateTimeOffset endAt,
         Guid laborId,
-        Spot spot,
+        Guid spotId,
         List<WorkOrderTask> repairTasks)
     {
         if (id == Guid.Empty) return WorkOrderErrors.WorkOrderIdRequired;
         if (vehicleId == Guid.Empty) return WorkOrderErrors.VehicleIdRequired;
         if (laborId == Guid.Empty) return WorkOrderErrors.LaborIdRequired;
+        if (spotId == Guid.Empty) return WorkOrderErrors.SpotIdRequired;
         if (repairTasks is null || repairTasks.Count == 0) return WorkOrderErrors.RepairTasksRequired;
         if (endAt <= startAt) return WorkOrderErrors.InvalidTiming;
-        if (!Enum.IsDefined(spot)) return WorkOrderErrors.SpotInvalid;
 
         var trackingToken = Guid.CreateVersion7();
-        var workOrder = new WorkOrder(id, vehicleId, startAt, endAt, laborId, spot, WorkOrderState.Scheduled, repairTasks, trackingToken);
+        var workOrder = new WorkOrder(id, vehicleId, startAt, endAt, laborId, spotId, WorkOrderState.Scheduled, repairTasks, trackingToken);
 
         workOrder.AddDomainEvent(new WorkOrderCreated(workOrder.Id, trackingToken));
         workOrder.AddDomainEvent(new WorkOrderCollectionModified());
@@ -128,23 +133,9 @@ public sealed class WorkOrder : AuditableEntity
         return Result.Updated;
     }
 
-    public Result<Updated> Cancel()
+    public Result<Updated> Cancel(TimeProvider timeProvider)
     {
-        if (!CanTransitionTo(WorkOrderState.Cancelled))
-        {
-            return WorkOrderErrors.InvalidStateTransition(State, WorkOrderState.Cancelled);
-        }
-
-        State = WorkOrderState.Cancelled;
-
-        var partsData = RepairTasks
-            .SelectMany(t => t.Parts.Select(p => new ReservedPartData(p.InventoryItemId, p.Quantity, t.Id)))
-            .ToList();
-
-        AddDomainEvent(new WorkOrderCancelled(Id, partsData));
-        AddDomainEvent(new WorkOrderCollectionModified(TrackingToken, State));
-
-        return Result.Updated;
+        return UpdateState(WorkOrderState.Cancelled, timeProvider);
     }
 
     public bool CanTransitionTo(WorkOrderState newStatus)
@@ -154,7 +145,6 @@ public sealed class WorkOrder : AuditableEntity
             (WorkOrderState.Scheduled, WorkOrderState.InProgress) => true,
             (WorkOrderState.InProgress, WorkOrderState.Completed) => true,
             (WorkOrderState.Scheduled, WorkOrderState.Cancelled) => true,
-            (WorkOrderState.InProgress, WorkOrderState.Cancelled) => true,
             _ => false
         };
     }
@@ -189,12 +179,12 @@ public sealed class WorkOrder : AuditableEntity
         return Result.Updated;
     }
 
-    public Result<Updated> UpdateSpot(Spot newSpot)
+    public Result<Updated> UpdateSpot(Guid spotId)
     {
         if (!IsEditable) return WorkOrderErrors.Readonly;
-        if (!Enum.IsDefined(newSpot)) return WorkOrderErrors.SpotInvalid;
+        if (spotId == Guid.Empty) return WorkOrderErrors.SpotIdRequired;
 
-        Spot = newSpot;
+        SpotId = spotId;
         AddDomainEvent(new WorkOrderCollectionModified());
         return Result.Updated;
     }

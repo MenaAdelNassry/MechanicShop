@@ -9,7 +9,8 @@ public sealed record WorkOrderDto
 {
     public Guid WorkOrderId { get; init; }
     public Guid? InvoiceId { get; init; }
-    public Spot Spot { get; init; }
+    public Guid SpotId { get; init; }
+    public string SpotName { get; init; } = string.Empty;
     public VehicleDto? Vehicle { get; init; }
     public DateTimeOffset StartAtUtc { get; init; }
     public DateTimeOffset EndAtUtc { get; init; }

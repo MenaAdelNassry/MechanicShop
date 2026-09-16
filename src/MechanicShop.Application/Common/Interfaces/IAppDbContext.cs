@@ -5,6 +5,7 @@ using MechanicShop.Domain.Employees;
 using MechanicShop.Domain.Identity;
 using MechanicShop.Domain.Inventory;
 using MechanicShop.Domain.RepairTasks;
+using MechanicShop.Domain.Spots;
 using MechanicShop.Domain.Workorders;
 using MechanicShop.Domain.Workorders.Billing;
 
@@ -27,6 +28,7 @@ public interface IAppDbContext
     public DbSet<InventoryTransaction> InventoryTransactions { get; }
     public DbSet<RepairTaskPart> RepairTaskParts { get; }
     public DbSet<Payment> Payments { get; }
+    public DbSet<ServiceBay> ServiceBays { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

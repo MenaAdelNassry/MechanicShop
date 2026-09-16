@@ -607,6 +607,32 @@ namespace MechanicShop.Infrastructure.Migrations
                     b.ToTable("RepairTaskParts", (string)null);
                 });
 
+            modelBuilder.Entity("MechanicShop.Domain.Spots.ServiceBay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ServiceBays_Name");
+
+                    b.ToTable("ServiceBays", (string)null);
+                });
+
             modelBuilder.Entity("MechanicShop.Domain.Workorders.Billing.Invoice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -726,10 +752,8 @@ namespace MechanicShop.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("LastModifiedUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Spot")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                    b.Property<Guid>("SpotId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("StartAtUtc")
                         .HasColumnType("datetimeoffset");
@@ -748,6 +772,8 @@ namespace MechanicShop.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LaborId");
+
+                    b.HasIndex("SpotId");
 
                     b.HasIndex("State");
 
@@ -1134,6 +1160,12 @@ namespace MechanicShop.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("MechanicShop.Domain.Spots.ServiceBay", "Spot")
+                        .WithMany()
+                        .HasForeignKey("SpotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MechanicShop.Domain.Customers.Vehicles.Vehicle", "Vehicle")
                         .WithMany()
                         .HasForeignKey("VehicleId")
@@ -1141,6 +1173,8 @@ namespace MechanicShop.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Labor");
+
+                    b.Navigation("Spot");
 
                     b.Navigation("Vehicle");
                 });

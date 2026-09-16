@@ -7,7 +7,10 @@ using MechanicShop.Domain.Identity;
 using MechanicShop.Domain.Inventory;
 using MechanicShop.Domain.RepairTasks;
 using MechanicShop.Domain.RepairTasks.Enums;
+using MechanicShop.Domain.Spots;
 using MechanicShop.Domain.Workorders;
+using MechanicShop.Domain.Workorders.Billing;
+using MechanicShop.Domain.Workorders.Billing.Enums;
 using MechanicShop.Domain.Workorders.Enums;
 using MechanicShop.Infrastructure.Identity;
 
@@ -34,11 +37,11 @@ public class ApplicationDbContextInitialiser(
     private readonly RoleManager<IdentityRole<Guid>> _role_manager = roleManager;
     private readonly TimeProvider _timeProvider = timeProvider;
 
-    private readonly Guid _managerEmpId = Guid.CreateVersion7();
-    private readonly Guid _labor01EmpId = Guid.CreateVersion7();
-    private readonly Guid _labor02EmpId = Guid.CreateVersion7();
-    private readonly Guid _labor03EmpId = Guid.CreateVersion7();
-    private readonly Guid _labor04EmpId = Guid.CreateVersion7();
+    private readonly Guid _managerEmpId = Guid.Parse("0191e4a0-0000-7000-8000-000000000001");
+    private readonly Guid _labor01EmpId = Guid.Parse("0191e4a0-0000-7000-8000-000000000002");
+    private readonly Guid _labor02EmpId = Guid.Parse("0191e4a0-0000-7000-8000-000000000003");
+    private readonly Guid _labor03EmpId = Guid.Parse("0191e4a0-0000-7000-8000-000000000004");
+    private readonly Guid _labor04EmpId = Guid.Parse("0191e4a0-0000-7000-8000-000000000005");
 
     public async Task InitialiseAsync()
     {
@@ -68,7 +71,7 @@ public class ApplicationDbContextInitialiser(
 
     public async Task TrySeedAsync()
     {
-        // 1. Seed All Roles defined in Role Enum dynamically
+        // 1. Seed Roles
         foreach (var roleName in Enum.GetNames<Role>())
         {
             if (!await _role_manager.RoleExistsAsync(roleName))
@@ -77,7 +80,7 @@ public class ApplicationDbContextInitialiser(
             }
         }
 
-        // 2. Seed Users
+        // 2. Seed Identity Users
         var managerRoleName = nameof(Role.Manager);
         var laborRoleName = nameof(Role.Labor);
 
@@ -117,44 +120,28 @@ public class ApplicationDbContextInitialiser(
         if (!_context.Employees.Any())
         {
             _context.Employees.AddRange([
-                Employee.Create(
-                    _managerEmpId,
-                    PersonName.Create("Primary", "Manager").Value,
-                    PhoneNumber.Create("01000000001").Value,
-                    Role.Manager,
-                    manager.Id).Value,
-
-                Employee.Create(
-                    _labor01EmpId,
-                    PersonName.Create("John", "S.").Value,
-                    PhoneNumber.Create("01000000002").Value,
-                    Role.Labor,
-                    defaultLabors[0].Id).Value,
-
-                Employee.Create(
-                    _labor02EmpId,
-                    PersonName.Create("Peter", "R.").Value,
-                    PhoneNumber.Create("01000000003").Value,
-                    Role.Labor,
-                    defaultLabors[1].Id).Value,
-
-                Employee.Create(
-                    _labor03EmpId,
-                    PersonName.Create("Kevin", "M.").Value,
-                    PhoneNumber.Create("01000000004").Value,
-                    Role.Labor,
-                    defaultLabors[2].Id).Value,
-
-                Employee.Create(
-                    _labor04EmpId,
-                    PersonName.Create("Suzan", "L.").Value,
-                    PhoneNumber.Create("01000000005").Value,
-                    Role.Labor,
-                    defaultLabors[3].Id).Value
+                Employee.Create(_managerEmpId, PersonName.Create("Ahmed", "Hassan").Value, PhoneNumber.Create("01000000001").Value, Role.Manager, manager.Id).Value,
+                Employee.Create(_labor01EmpId, PersonName.Create("John", "Smith").Value, PhoneNumber.Create("01000000002").Value, Role.Labor, defaultLabors[0].Id).Value,
+                Employee.Create(_labor02EmpId, PersonName.Create("Peter", "Ramzy").Value, PhoneNumber.Create("01000000003").Value, Role.Labor, defaultLabors[1].Id).Value,
+                Employee.Create(_labor03EmpId, PersonName.Create("Kevin", "Maged").Value, PhoneNumber.Create("01000000004").Value, Role.Labor, defaultLabors[2].Id).Value,
+                Employee.Create(_labor04EmpId, PersonName.Create("Suzan", "Lotfy").Value, PhoneNumber.Create("01000000005").Value, Role.Labor, defaultLabors[3].Id).Value
             ]);
+            await _context.SaveChangesAsync();
         }
 
-        // 4. Seed Inventory Items
+        // 4. Seed Service Bays (Spots)
+        if (!_context.ServiceBays.Any())
+        {
+            _context.ServiceBays.AddRange([
+                ServiceBay.Create("Bay A", "General Mechanical Bay 1"),
+                ServiceBay.Create("Bay B", "General Mechanical Bay 2"),
+                ServiceBay.Create("Bay C", "Quick Service & Oil Bay"),
+                ServiceBay.Create("Bay D", "Brakes & Suspension Bay")
+            ]);
+            await _context.SaveChangesAsync();
+        }
+
+        // 5. Seed Inventory Items
         var oilItemGuid = Guid.Parse("ec65225c-9066-4a1c-974f-f183c39fdd16");
         var oilFilterGuid = Guid.Parse("62ad80e3-2cff-41af-ab40-16fab8db8b38");
         var brakePadsGuid = Guid.Parse("86375a12-715e-4aa4-aad9-c0f9ccf44a14");
@@ -165,288 +152,248 @@ public class ApplicationDbContextInitialiser(
         if (!_context.InventoryItems.Any())
         {
             _context.InventoryItems.AddRange([
-                InventoryItem.Create(oilItemGuid, "Engine Oil", 25.00m, 100, 10).Value,
-                InventoryItem.Create(oilFilterGuid, "Oil Filter", 10.00m, 50, 5).Value,
-                InventoryItem.Create(brakePadsGuid, "Brake Pads", 40.00m, 40, 5).Value,
-                InventoryItem.Create(brakeFluidGuid, "Brake Fluid", 15.00m, 30, 5).Value,
-                InventoryItem.Create(tireValveGuid, "Tire Valve", 5.00m, 200, 20).Value,
-                InventoryItem.Create(batteryGuid, "Car Battery", 120.00m, 15, 2).Value
+                InventoryItem.Create(oilItemGuid, "Synthetic 5W-30 Oil (4L)", 45.00m, 120, 15).Value,
+                InventoryItem.Create(oilFilterGuid, "OEM Oil Filter", 15.00m, 60, 10).Value,
+                InventoryItem.Create(brakePadsGuid, "Front Ceramic Brake Pads", 85.00m, 40, 8).Value,
+                InventoryItem.Create(brakeFluidGuid, "DOT4 Brake Fluid 500ml", 18.00m, 35, 5).Value,
+                InventoryItem.Create(tireValveGuid, "High-Pressure Tire Valve", 6.00m, 150, 20).Value,
+                InventoryItem.Create(batteryGuid, "70Ah Lead-Acid Battery", 140.00m, 20, 4).Value
             ]);
             await _context.SaveChangesAsync();
-        }
-
-        // 5. Seed Customers & Vehicles
-        if (!_context.Customers.Any())
-        {
-            static T EnsureSuccess<T>(Result<T> result, ILogger logger, string contextName)
-            {
-                if (result.IsError)
-                {
-                    logger.LogError("Seeding failed for {Context}: {Code} - {Description}", contextName, result.TopError.Code, result.TopError.Description);
-                    throw new InvalidOperationException($"Seeding failed for {contextName}");
-                }
-
-                return result.Value;
-            }
-
-            static string ShortLicense(string prefix) => $"{prefix}-{Guid.CreateVersion7().ToString("N")[..5]}";
-
-            Guid newCustomerId = Guid.CreateVersion7();
-            Guid newCustomerId2 = Guid.CreateVersion7();
-
-            var vehicle1 = EnsureSuccess(Vehicle.Create(Guid.Parse("61401e63-007b-4b1c-8914-9eb6e9bd95c5"), "Toyota", "Camry", 2020, ShortLicense("ABC"), newCustomerId, _timeProvider), _logger, "Vehicle1");
-            var vehicle2 = EnsureSuccess(Vehicle.Create(Guid.Parse("13c80914-41ad-4d46-b7bb-60f6c89ad01e"), "Honda", "Civic", 2018, ShortLicense("XYZ"), newCustomerId, _timeProvider), _logger, "Vehicle2");
-
-            var phone1 = EnsureSuccess(PhoneNumber.Create("01123456789"), _logger, "Phone1");
-            var name1 = EnsureSuccess(PersonName.Create("John", "Doe"), _logger, "Name1");
-            var email1 = EnsureSuccess(EmailAddress.Create("john.doe@localhost"), _logger, "Email1");
-
-            var customer1 = EnsureSuccess(Customer.Create(newCustomerId, name1, email1, phone1, new List<Vehicle> { vehicle1, vehicle2 }), _logger, "Customer1");
-
-            var v3 = EnsureSuccess(Vehicle.Create(Guid.Parse("a04f329d-0f5a-46a0-beae-699c034ae401"), "Ford", "Focus", 2021, ShortLicense("DEF"), newCustomerId2, _timeProvider), _logger, "V3");
-            var v4 = EnsureSuccess(Vehicle.Create(Guid.Parse("cf60e95b-5752-4c26-aa07-31a34164606c"), "Chevrolet", "Malibu", 2019, ShortLicense("GHI"), newCustomerId2, _timeProvider), _logger, "V4");
-
-            var phone2 = EnsureSuccess(PhoneNumber.Create("01287654321"), _logger, "Phone2");
-            var name2 = EnsureSuccess(PersonName.Create("Sarah", "Peter"), _logger, "Name2");
-            var email2 = EnsureSuccess(EmailAddress.Create("sarah.peter@localhost"), _logger, "Email2");
-
-            var customer2 = EnsureSuccess(Customer.Create(newCustomerId2, name2, email2, phone2, new List<Vehicle> { v3, v4 }), _logger, "Customer2");
-
-            _context.Customers.AddRange(customer1, customer2);
         }
 
         // 6. Seed Repair Tasks
+        var oilChangeTaskId = Guid.Parse("616aebb1-d515-4b40-8d47-8d5c0b67a313");
+        var brakeChangeTaskId = Guid.Parse("4fa0be55-06f6-4616-b086-e1f0c9354cd8");
+        var tireRotationTaskId = Guid.Parse("a376b5d1-6b2d-4dd8-883e-d3d1721c1316");
+        var batteryChangeTaskId = Guid.Parse("a770cc6e-0c8b-4ac5-9ee6-6928682bd47e");
+
         if (!_context.RepairTasks.Any())
         {
             _context.RepairTasks.AddRange([
-                RepairTask.Create(Guid.Parse("616aebb1-d515-4b40-8d47-8d5c0b67a313"), "Engine Oil Change", 50.00m, RepairDurationInMinutes.Min60, [new RepairTaskPartData(oilItemGuid, 1), new RepairTaskPartData(oilFilterGuid, 1)]).Value,
-                RepairTask.Create(Guid.Parse("4fa0be55-06f6-4616-b086-e1f0c9354cd8"), "Brake Replacement", 150.00m, RepairDurationInMinutes.Min90, [new RepairTaskPartData(brakePadsGuid, 2), new RepairTaskPartData(brakeFluidGuid, 1)]).Value,
-                RepairTask.Create(Guid.Parse("a376b5d1-6b2d-4dd8-883e-d3d1721c1316"), "Tire Rotation", 30.00m, RepairDurationInMinutes.Min45, [new RepairTaskPartData(tireValveGuid, 4)]).Value,
-                RepairTask.Create(Guid.Parse("a770cc6e-0c8b-4ac5-9ee6-6928682bd47e"), "Battery Replacement", 70.00m, RepairDurationInMinutes.Min30, [new RepairTaskPartData(batteryGuid, 1)]).Value
+                RepairTask.Create(oilChangeTaskId, "Engine Oil & Filter Service", 40.00m, RepairDurationInMinutes.Min45, [new RepairTaskPartData(oilItemGuid, 1), new RepairTaskPartData(oilFilterGuid, 1)]).Value,
+                RepairTask.Create(brakeChangeTaskId, "Brake Pads Replacement & Bleeding", 75.00m, RepairDurationInMinutes.Min60, [new RepairTaskPartData(brakePadsGuid, 1), new RepairTaskPartData(brakeFluidGuid, 1)]).Value,
+                RepairTask.Create(tireRotationTaskId, "Tire Balancing & Rotation", 25.00m, RepairDurationInMinutes.Min30, [new RepairTaskPartData(tireValveGuid, 4)]).Value,
+                RepairTask.Create(batteryChangeTaskId, "Battery Replacement & Terminal Cleaning", 30.00m, RepairDurationInMinutes.Min30, [new RepairTaskPartData(batteryGuid, 1)]).Value
             ]);
-        }
-
-        ValidateAddedCustomersHavePhone(_context, _logger);
-
-        await _context.SaveChangesAsync();
-
-        // 7. Seed WorkOrders
-        if (!_context.WorkOrders.Any())
-        {
-            var laborEmployeeIds = new[]
-            {
-                _context.Employees.FirstOrDefault(e => e.IdentityUserId == defaultLabors[0].Id)?.Id ?? _labor01EmpId,
-                _context.Employees.FirstOrDefault(e => e.IdentityUserId == defaultLabors[1].Id)?.Id ?? _labor02EmpId,
-                _context.Employees.FirstOrDefault(e => e.IdentityUserId == defaultLabors[2].Id)?.Id ?? _labor03EmpId,
-                _context.Employees.FirstOrDefault(e => e.IdentityUserId == defaultLabors[3].Id)?.Id ?? _labor04EmpId
-            };
-
-            var workOrders = await BuildSeedWorkOrdersAsync(laborEmployeeIds);
-            _context.WorkOrders.AddRange(workOrders);
             await _context.SaveChangesAsync();
         }
-    }
 
-    private async Task<List<WorkOrder>> BuildSeedWorkOrdersAsync(Guid[] laborEmployeeIds)
-    {
-        var scheduled = await BuildScheduledWorkOrdersForNextMonthAsync(laborEmployeeIds);
-        scheduled.AddRange(await BuildInProgressDemoWorkOrdersAsync(laborEmployeeIds));
-        return scheduled;
-    }
-
-    private async Task<List<WorkOrder>> BuildScheduledWorkOrdersForNextMonthAsync(Guid[] laborEmployeeIds)
-    {
-        var repairTasks = await _context.RepairTasks.Include(t => t.Parts).ToListAsync();
-        var vehicles = await _context.Vehicles.ToListAsync();
-        var inventoryItemsMap = await _context.InventoryItems.ToDictionaryAsync(i => i.Id);
-
-        if (repairTasks.Count == 0 || vehicles.Count == 0) return new List<WorkOrder>();
-
-        var spots = new[] { Spot.A, Spot.B, Spot.C, Spot.D };
-        var random = Random.Shared;
-
-        TimeSpan openTime = TimeSpan.FromHours(6);
-        TimeSpan closeTime = TimeSpan.FromHours(21);
-        int totalMinutes = (int)(closeTime - openTime).TotalMinutes;
-        int minOccupancy = (int)(totalMinutes * 0.6);
-        int maxOccupancy = (int)(totalMinutes * 0.8);
-
-        var workOrders = new List<WorkOrder>();
-        var day = DateTimeOffset.Now.Date.AddDays(1);
-        var lastDay = day.AddMonths(1);
-
-        while (day < lastDay)
+        // 7. Seed Customers & Vehicles (Distinct Customers with Realistic Vehicles)
+        if (!_context.Customers.Any())
         {
-            foreach (var spot in spots)
+            var seedCustomers = new List<Customer>();
+
+            var customersData = new (string First, string Last, string Phone, string Email, string Make, string Model, int Year, string Plate)[]
             {
-                workOrders.AddRange(
-                    FillSpotForDay(day, spot, openTime, closeTime, minOccupancy, maxOccupancy, repairTasks, vehicles, laborEmployeeIds, workOrders, random, inventoryItemsMap));
+                ("Maged", "Nabil", "01011112222", "maged.nabil@example.com", "Toyota", "Corolla", 2021, "ABC-1234"),
+                ("Ramy", "Tawfik", "01133334444", "ramy.tawfik@example.com", "Hyundai", "Elantra", 2019, "XYZ-5678"),
+                ("Sherif", "Adel", "01255556666", "sherif.adel@example.com", "Kia", "Sportage", 2022, "DEF-9012"),
+                ("Tamer", "Hosny", "01077778888", "tamer.hosny@example.com", "Nissan", "Sunny", 2018, "GHI-3456"),
+                ("Hany", "Salama", "01599990000", "hany.salama@example.com", "BMW", "320i", 2020, "JKL-7890"),
+                ("Mina", "George", "01022223333", "mina.george@example.com", "Renault", "Megane", 2021, "MNO-2345"),
+                ("Karim", "Fahmy", "01144445555", "karim.fahmy@example.com", "Mercedes-Benz", "C180", 2022, "PQR-6789"),
+                ("Omar", "Youssef", "01266667777", "omar.youssef@example.com", "Skoda", "Octavia", 2023, "STU-0123")
+            };
+
+            foreach (var item in customersData)
+            {
+                var custId = Guid.CreateVersion7();
+                var vehicle = Vehicle.Create(Guid.CreateVersion7(), item.Make, item.Model, item.Year, item.Plate, custId, _timeProvider).Value;
+                var cust = Customer.Create(
+                    custId,
+                    PersonName.Create(item.First, item.Last).Value,
+                    EmailAddress.Create(item.Email).Value,
+                    PhoneNumber.Create(item.Phone).Value,
+                    new List<Vehicle> { vehicle }).Value;
+
+                seedCustomers.Add(cust);
             }
 
-            day = day.AddDays(1);
+            _context.Customers.AddRange(seedCustomers);
+            await _context.SaveChangesAsync();
         }
 
-        return workOrders;
-    }
-
-    private static List<WorkOrder> FillSpotForDay(
-        DateTimeOffset day,
-        Spot spot,
-        TimeSpan openTime,
-        TimeSpan closeTime,
-        int minOccupancy,
-        int maxOccupancy,
-        List<RepairTask> repairTasks,
-        List<Vehicle> vehicles,
-        Guid[] laborIds,
-        List<WorkOrder> existingWorkOrders,
-        Random random,
-        Dictionary<Guid, InventoryItem> inventoryItemsMap)
-    {
-        var spotWorkOrders = new List<WorkOrder>();
-        int occupiedMinutes = 0;
-        var currentTime = day.Add(openTime);
-
-        while (occupiedMinutes < minOccupancy && currentTime.TimeOfDay < closeTime)
+        // 8. Seed Realistic 2-Day Work Orders
+        if (!_context.WorkOrders.Any())
         {
-            int maxTasks = Math.Min(3, repairTasks.Count);
-            var selectedTasks = repairTasks
-                .DistinctBy(t => t.Id)
-                .OrderBy(_ => Guid.CreateVersion7())
-                .Take(random.Next(1, maxTasks + 1))
-                .ToList();
-
-            int duration = selectedTasks.Sum(t => (int)t.EstimatedDurationInMins);
-            if (duration <= 0)
-            {
-                occupiedMinutes += 30;
-                currentTime = currentTime.AddMinutes(30);
-                continue;
-            }
-
-            if (occupiedMinutes + duration > maxOccupancy) break;
-
-            var startAt = currentTime;
-            var endAt = startAt.AddMinutes(duration);
-
-            var vehicle = vehicles.FirstOrDefault(v => IsVehicleFree(v.Id, startAt, endAt, existingWorkOrders, spotWorkOrders));
-            if (vehicle is null)
-            {
-                occupiedMinutes += 30;
-                currentTime = currentTime.AddMinutes(30);
-                continue;
-            }
-
-            if (endAt.TimeOfDay > closeTime) break;
-
-            var order = WorkOrder.Create(
-                Guid.CreateVersion7(),
-                vehicle.Id,
-                startAt,
-                endAt,
-                laborIds[random.Next(laborIds.Length)],
-                spot,
-                ToWorkOrderTasks(selectedTasks, inventoryItemsMap)).Value;
-
-            spotWorkOrders.Add(order);
-            occupiedMinutes += duration;
-            currentTime = day.Add(openTime).AddMinutes(occupiedMinutes);
+            await SeedTwoDayRealisticWorkOrdersAsync();
         }
-
-        return occupiedMinutes >= minOccupancy ? spotWorkOrders : new List<WorkOrder>();
     }
 
-    private async Task<List<WorkOrder>> BuildInProgressDemoWorkOrdersAsync(Guid[] laborEmployeeIds)
+    private async Task SeedTwoDayRealisticWorkOrdersAsync()
     {
-        var repairTasks = await _context.RepairTasks.Include(t => t.Parts).ToListAsync();
-        var vehicleId = await _context.Vehicles.OrderBy(_ => Guid.CreateVersion7()).Select(v => v.Id).FirstAsync();
-        var inventoryItemsMap = await _context.InventoryItems.ToDictionaryAsync(i => i.Id);
+        var bays = await _context.ServiceBays.OrderBy(b => b.Name).ToListAsync();
+        var labors = await _context.Employees.Where(e => e.Role == Role.Labor).OrderBy(e => e.Name.FirstName).ToListAsync();
+        var vehicles = await _context.Vehicles.OrderBy(v => v.LicensePlate).ToListAsync();
+        var tasks = await _context.RepairTasks.Include(t => t.Parts).ToDictionaryAsync(t => t.Id);
+        var invItems = await _context.InventoryItems.ToDictionaryAsync(i => i.Id);
 
-        var utcNow = DateTimeOffset.UtcNow;
-        var tasksStartingNow = repairTasks.OrderBy(_ => Guid.CreateVersion7()).Take(2).ToList();
-        var startNow = RoundToQuarterHour(utcNow);
-        var endNow = startNow.AddMinutes(tasksStartingNow.Sum(t => (int)t.EstimatedDurationInMins));
+        if (bays.Count < 4 || labors.Count < 4 || vehicles.Count < 8) return;
 
-        var startingNow = WorkOrder.Create(
+        var nowUtc = _timeProvider.GetUtcNow();
+        var today = new DateTimeOffset(nowUtc.Year, nowUtc.Month, nowUtc.Day, 0, 0, 0, TimeSpan.Zero);
+        var tomorrow = today.AddDays(1);
+
+        var oilTask = tasks[Guid.Parse("616aebb1-d515-4b40-8d47-8d5c0b67a313")];
+        var brakeTask = tasks[Guid.Parse("4fa0be55-06f6-4616-b086-e1f0c9354cd8")];
+        var tireTask = tasks[Guid.Parse("a376b5d1-6b2d-4dd8-883e-d3d1721c1316")];
+        var batteryTask = tasks[Guid.Parse("a770cc6e-0c8b-4ac5-9ee6-6928682bd47e")];
+
+        var seededOrders = new List<WorkOrder>();
+
+        // ==========================================
+        // ????? ????? (Today): 4 ????? ?????? ??????
+        // ==========================================
+
+        // 1. ??? ????? ????? ????? ??????? ?? ???????
+        var wo1Start = today.AddHours(8).AddMinutes(30);
+        var wo1End = wo1Start.AddMinutes((int)oilTask.EstimatedDurationInMins);
+        var wo1 = WorkOrder.Create(
             Guid.CreateVersion7(),
-            vehicleId,
-            startNow,
-            endNow,
-            laborEmployeeIds[0],
-            Spot.A,
-            ToWorkOrderTasks(tasksStartingNow, inventoryItemsMap)).Value;
+            vehicles[0].Id,
+            wo1Start,
+            wo1End,
+            labors[0].Id,
+            bays[0].Id,
+            ToWorkOrderTasks([oilTask], invItems)).Value;
 
-        startingNow.UpdateState(WorkOrderState.InProgress, _timeProvider);
+        wo1.UpdateState(WorkOrderState.InProgress, _timeProvider);
+        wo1.UpdateState(WorkOrderState.Completed, _timeProvider);
+        seededOrders.Add(wo1);
 
-        var hourLongTask = repairTasks.First(t => t.EstimatedDurationInMins == RepairDurationInMinutes.Min60);
-        var startEarlier = RoundToQuarterHour(utcNow.AddMinutes(-45));
-        var endEarlier = startEarlier.AddMinutes((int)hourLongTask.EstimatedDurationInMins);
-
-        var endingSoon = WorkOrder.Create(
+        // ?????? ????? ????? ?????
+        var invoice1 = Invoice.Create(
             Guid.CreateVersion7(),
-            vehicleId,
-            startEarlier,
-            endEarlier,
-            laborEmployeeIds.Length > 1 ? laborEmployeeIds[1] : laborEmployeeIds[0],
-            Spot.B,
-            ToWorkOrderTasks(new[] { hourLongTask }, inventoryItemsMap)).Value;
+            wo1.Id,
+            [
+                InvoiceLineItem.Create(Guid.Empty, 1, $"Service: {oilTask.Name}", 1, oilTask.LaborCost).Value,
+                InvoiceLineItem.Create(Guid.Empty, 2, "Synthetic 5W-30 Oil", 1, 45.00m).Value,
+                InvoiceLineItem.Create(Guid.Empty, 3, "OEM Oil Filter", 1, 15.00m).Value
+            ],
+            discountAmount: 0m,
+            _timeProvider).Value;
 
-        endingSoon.UpdateState(WorkOrderState.InProgress, _timeProvider);
+        invoice1.RecordPayment(
+            Guid.CreateVersion7(),
+            invoice1.Total,
+            PaymentMethod.PosCard,
+            labors[0].Id,
+            "POS-AUTH-98214",
+            _timeProvider);
 
-        return new List<WorkOrder> { startingNow, endingSoon };
+        _context.Invoices.Add(invoice1);
+
+        // 2. ??? ??? ??????? ?????? (InProgress) ?? ?????? B
+        var wo2Start = today.AddHours(10).AddMinutes(0);
+        var wo2End = wo2Start.AddMinutes((int)brakeTask.EstimatedDurationInMins);
+        var wo2 = WorkOrder.Create(
+            Guid.CreateVersion7(),
+            vehicles[1].Id,
+            wo2Start,
+            wo2End,
+            labors[1].Id,
+            bays[1].Id,
+            ToWorkOrderTasks([brakeTask], invItems)).Value;
+
+        wo2.UpdateState(WorkOrderState.InProgress, _timeProvider);
+        seededOrders.Add(wo2);
+
+        // 3. ??? ????? ????? ??????? (Scheduled)
+        var wo3Start = today.AddHours(13).AddMinutes(0);
+        var wo3End = wo3Start.AddMinutes((int)tireTask.EstimatedDurationInMins);
+        var wo3 = WorkOrder.Create(
+            Guid.CreateVersion7(),
+            vehicles[2].Id,
+            wo3Start,
+            wo3End,
+            labors[2].Id,
+            bays[2].Id,
+            ToWorkOrderTasks([tireTask], invItems)).Value;
+        seededOrders.Add(wo3);
+
+        // 4. ??? ???? (Cancelled)
+        var wo4Start = today.AddHours(15).AddMinutes(0);
+        var wo4End = wo4Start.AddMinutes((int)batteryTask.EstimatedDurationInMins);
+        var wo4 = WorkOrder.Create(
+            Guid.CreateVersion7(),
+            vehicles[3].Id,
+            wo4Start,
+            wo4End,
+            labors[3].Id,
+            bays[3].Id,
+            ToWorkOrderTasks([batteryTask], invItems)).Value;
+
+        wo4.Cancel(_timeProvider);
+        seededOrders.Add(wo4);
+
+        // ==========================================
+        // ????? ?????? (Tomorrow): ???? ????? ????
+        // ==========================================
+
+        // 5. ???? ???? (Scheduled)
+        var wo5Start = tomorrow.AddHours(9).AddMinutes(0);
+        var wo5End = wo5Start.AddMinutes((int)oilTask.EstimatedDurationInMins);
+        var wo5 = WorkOrder.Create(
+            Guid.CreateVersion7(),
+            vehicles[4].Id,
+            wo5Start,
+            wo5End,
+            labors[0].Id,
+            bays[0].Id,
+            ToWorkOrderTasks([oilTask], invItems)).Value;
+        seededOrders.Add(wo5);
+
+        // 6. ???? ?????? ????? ??????? (Scheduled)
+        var combinedTasks = new[] { brakeTask, batteryTask };
+        var totalMins = combinedTasks.Sum(t => (int)t.EstimatedDurationInMins);
+        var wo6Start = tomorrow.AddHours(10).AddMinutes(30);
+        var wo6End = wo6Start.AddMinutes(totalMins);
+        var wo6 = WorkOrder.Create(
+            Guid.CreateVersion7(),
+            vehicles[5].Id,
+            wo6Start,
+            wo6End,
+            labors[1].Id,
+            bays[1].Id,
+            ToWorkOrderTasks(combinedTasks, invItems)).Value;
+        seededOrders.Add(wo6);
+
+        // 7. ???? ????? ?????? (Scheduled)
+        var wo7Start = tomorrow.AddHours(13).AddMinutes(30);
+        var wo7End = wo7Start.AddMinutes((int)tireTask.EstimatedDurationInMins);
+        var wo7 = WorkOrder.Create(
+            Guid.CreateVersion7(),
+            vehicles[6].Id,
+            wo7Start,
+            wo7End,
+            labors[2].Id,
+            bays[2].Id,
+            ToWorkOrderTasks([tireTask], invItems)).Value;
+        seededOrders.Add(wo7);
+
+        _context.WorkOrders.AddRange(seededOrders);
+        await _context.SaveChangesAsync();
     }
 
-    private static List<WorkOrderTask> ToWorkOrderTasks(IEnumerable<RepairTask> repairTasks, Dictionary<Guid, InventoryItem> inventoryItemsMap) =>
-    repairTasks.Select(rt =>
+    private static List<WorkOrderTask> ToWorkOrderTasks(IEnumerable<RepairTask> repairTasks, Dictionary<Guid, InventoryItem> inventoryItemsMap)
     {
-        var parts = rt.Parts.Select(p =>
+        return repairTasks.Select(rt =>
         {
-            var invItem = inventoryItemsMap.GetValueOrDefault(p.InventoryItemId);
-            return new WorkOrderTaskPart(p.InventoryItemId, invItem?.Name ?? "Part", invItem?.Cost ?? 10m, p.Quantity);
+            var parts = rt.Parts.Select(p =>
+            {
+                var invItem = inventoryItemsMap.GetValueOrDefault(p.InventoryItemId);
+                return new WorkOrderTaskPart(p.InventoryItemId, invItem?.Name ?? "Spare Part", invItem?.Cost ?? 10m, p.Quantity);
+            }).ToList();
+
+            return new WorkOrderTask(
+                id: Guid.CreateVersion7(),
+                originalTaskId: rt.Id,
+                name: rt.Name,
+                laborCost: rt.LaborCost,
+                estimatedDurationInMins: rt.EstimatedDurationInMins,
+                parts: parts);
         }).ToList();
-
-        return new WorkOrderTask(
-            id: Guid.CreateVersion7(),
-            originalTaskId: rt.Id,
-            name: rt.Name,
-            laborCost: rt.LaborCost,
-            estimatedDurationInMins: rt.EstimatedDurationInMins,
-            parts: parts);
-    }).ToList();
-
-    private static bool IsVehicleFree(
-        Guid vehicleId,
-        DateTimeOffset startAt,
-        DateTimeOffset endAt,
-        IEnumerable<WorkOrder> committed,
-        IEnumerable<WorkOrder> pendingForSpot) =>
-        !committed.Concat(pendingForSpot).Any(w =>
-            w.VehicleId == vehicleId &&
-            w.StartAtUtc.Date == startAt.Date &&
-            w.StartAtUtc < endAt &&
-            w.EndAtUtc > startAt);
-
-    private static DateTimeOffset RoundToQuarterHour(DateTimeOffset time)
-    {
-        int minute = time.Minute - (time.Minute % 15);
-        return new DateTimeOffset(time.Year, time.Month, time.Day, time.Hour, minute, 0, time.Offset);
-    }
-
-    private static void ValidateAddedCustomersHavePhone(AppDbContext ctx, ILogger logger)
-    {
-        var addedCustomers = ctx.ChangeTracker.Entries<Customer>()
-            .Where(e => e.State == EntityState.Added)
-            .Select(e => e.Entity)
-            .ToList();
-
-        foreach (var c in addedCustomers)
-        {
-            if (c == null || c.PhoneNumber == null)
-            {
-                logger.LogError("Seeding failed: Customer {CustomerId} has null PhoneNumber.", c?.Id);
-                throw new InvalidOperationException($"Seeding failed: Customer {c?.Id} has null PhoneNumber.");
-            }
-        }
     }
 }
 

@@ -12,12 +12,20 @@ public sealed class Invoice : AuditableEntity
     public DateTimeOffset? PaidAt { get; private set; }
     public decimal TaxRateAtIssuance { get; private set; }
     public decimal DiscountAmount { get; private set; }
+    public InvoiceStatus Status { get; private set; }
     public DateTimeOffset IssuedAtUtc { get; private set; }
 
+    // Computed properties
     public decimal Subtotal => LineItems.Sum(x => x.LineTotal);
-    public decimal TaxAmount => Subtotal * TaxRateAtIssuance;
+    public decimal TaxableAmount => Math.Max(0, Subtotal - DiscountAmount);
+    public decimal TaxAmount => TaxableAmount * TaxRateAtIssuance;
     public decimal Total => Subtotal - DiscountAmount + TaxAmount;
+    public decimal TotalPaid => _payments
+    .Where(p => p.Status == PaymentStatus.Completed)
+    .Sum(p => p.Amount);
+    public decimal RemainingAmount => Math.Max(0, Total - TotalPaid);
 
+    // Navigation property
     public WorkOrder? WorkOrder { get; set; }
 
     private readonly List<InvoiceLineItem> _lineItems = [];
@@ -25,12 +33,6 @@ public sealed class Invoice : AuditableEntity
 
     private readonly List<Payment> _payments = new();
     public IReadOnlyList<Payment> Payments => _payments;
-    public InvoiceStatus Status { get; private set; }
-    public decimal TotalPaid => _payments
-    .Where(p => p.Status == PaymentStatus.Completed)
-    .Sum(p => p.Amount);
-
-    public decimal RemainingAmount => Math.Max(0, Total - TotalPaid);
     private Invoice()
     { }
 
@@ -201,14 +203,12 @@ public sealed class Invoice : AuditableEntity
         }
 
         var markResult = payment.MarkAsCompleted(transactionReference, timeProvider);
-        if (markResult.IsError)
-        {
-            return markResult.Errors;
-        }
+        if (markResult.IsError) return markResult.Errors;
 
         if (RemainingAmount <= 0)
         {
-            MarkAsPaid(timeProvider);
+            var markAsPaidResult = MarkAsPaid(timeProvider);
+            if(markAsPaidResult.IsError) return markAsPaidResult.Errors;
         }
         else if (TotalPaid > 0)
         {

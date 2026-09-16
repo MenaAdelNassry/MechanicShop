@@ -14,7 +14,6 @@ using MechanicShop.Application.Features.Inventory.Queries.GetInventoryItemById;
 using MechanicShop.Application.Features.Inventory.Queries.GetInventoryItems;
 using MechanicShop.Application.Features.Inventory.Queries.GetInventoryItemTransactions;
 using MechanicShop.Application.Features.Inventory.Queries.GetLowStockItems;
-using MechanicShop.Domain.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

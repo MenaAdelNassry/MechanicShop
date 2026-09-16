@@ -50,8 +50,14 @@ public sealed class RelocateWorkOrderCommandHandler(
         var startAtUtc = command.NewStartAt.UtcDateTime;
         var endAtUtc = endAt.UtcDateTime;
 
+        var existedSpot = await context.ServiceBays
+            .FirstOrDefaultAsync(s => s.Id == command.NewSpotId && s.IsActive, ct);
+
+        if (existedSpot is null)
+            return ApplicationErrors.ServiceBays.NotFound;
+
         var isSpotBusy = await scheduleReadStore.HasSpotConflictAsync(
-            command.NewSpot,
+            command.NewSpotId,
             startAtUtc,
             endAtUtc,
             excludeWorkOrderId: workOrder.Id,
@@ -59,7 +65,7 @@ public sealed class RelocateWorkOrderCommandHandler(
 
         if (isSpotBusy)
         {
-            logger.LogError("Spot: {Spot} is not available.", command.NewSpot.ToString());
+            logger.LogError("Spot: {Spot} is not available.", existedSpot.Name);
             return ApplicationErrors.WorkOrders.SpotIsNotAvailable;
         }
 
@@ -99,7 +105,7 @@ public sealed class RelocateWorkOrderCommandHandler(
             return updateTimingResult.Errors;
         }
 
-        var updateSpotResult = workOrder.UpdateSpot(command.NewSpot);
+        var updateSpotResult = workOrder.UpdateSpot(command.NewSpotId);
         if (updateSpotResult.IsError)
         {
             logger.LogError("Failed to update Spot: {Error}", updateSpotResult.TopError.Description);

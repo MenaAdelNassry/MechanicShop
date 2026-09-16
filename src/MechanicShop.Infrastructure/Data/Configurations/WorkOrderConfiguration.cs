@@ -24,10 +24,11 @@ public class WorkOrderConfiguration : IEntityTypeConfiguration<WorkOrder>
                .HasMaxLength(30)
                .IsRequired();
 
-        builder.Property(w => w.Spot)
-               .HasConversion<string>()
-               .HasMaxLength(30)
-               .IsRequired();
+        builder.Property(w => w.SpotId).IsRequired();
+        builder.HasOne(w => w.Spot)
+            .WithMany()
+            .HasForeignKey(w => w.SpotId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(w => w.StartAtUtc).IsRequired();
         builder.Property(w => w.EndAtUtc).IsRequired();

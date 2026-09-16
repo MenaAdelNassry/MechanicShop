@@ -69,7 +69,7 @@ public sealed class GetCustomerHistoryQueryHandler(IAppDbContext context)
             w.StartAtUtc,
             w.EndAtUtc,
             w.State,
-            w.Spot,
+            w.SpotId,
             w.Labor?.Name.FullName,
             w.TotalLaborCost,
             w.TotalPartsCost,

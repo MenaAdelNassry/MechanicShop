@@ -5,6 +5,7 @@ using MechanicShop.Application.Features.WorkOrders.Mappers;
 using MechanicShop.Application.Metrices;
 using MechanicShop.Domain.Common.Results;
 using MechanicShop.Domain.Employees;
+using MechanicShop.Domain.Spots;
 using MechanicShop.Domain.Workorders;
 
 using MediatR;
@@ -54,11 +55,17 @@ public sealed class CreateWorkOrderCommandHandler(
         var endAtUtc = endAt.UtcDateTime;
 
         // 4. (Spot Conflict)
-        var isSpotBusy = await scheduleReadStore.HasSpotConflictAsync(command.Spot, startAtUtc, endAtUtc, null, ct);
+        var existedSpot = await context.ServiceBays
+            .FirstOrDefaultAsync(s => s.Id == command.SpotId && s.IsActive, ct);
+
+        if (existedSpot is null)
+            return ApplicationErrors.ServiceBays.NotFound;
+
+        var isSpotBusy = await scheduleReadStore.HasSpotConflictAsync(command.SpotId, startAtUtc, endAtUtc, null, ct);
         if (isSpotBusy)
         {
-            logger.LogError("Spot: {Spot} is not available during the requested period.", command.Spot.ToString());
-            return ApplicationErrors.WorkOrders.SpotNotAvailable(command.Spot, command.StartAt, endAt);
+            logger.LogError("Spot: {Spot} is not available during the requested period.", existedSpot.Name);
+            return ApplicationErrors.WorkOrders.SpotNotAvailable(existedSpot.Name, command.StartAt, endAt);
         }
 
         // 5. (Vehicle Conflict)
@@ -145,7 +152,7 @@ public sealed class CreateWorkOrderCommandHandler(
             command.StartAt,
             endAt,
             labor?.Id ?? Guid.Empty,
-            command.Spot,
+            command.SpotId,
             workOrderSnapshots);
 
         if (createWorkOrderResult.IsError)
@@ -162,6 +169,10 @@ public sealed class CreateWorkOrderCommandHandler(
         MechanicShopMetrics.WorkOrdersCreated.Add(1);
         logger.LogInformation("WorkOrder with Id '{WorkOrderId}' created successfully.", workOrder.Id);
 
-        return workOrder.ToDto(vehicle, labor);
+        var dto = workOrder.ToDto(vehicle, labor) with
+        {
+            SpotName = existedSpot.Name
+        };
+        return dto;
     }
 }

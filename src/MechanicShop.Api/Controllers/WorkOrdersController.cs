@@ -47,7 +47,7 @@ public sealed class WorkOrdersController(ISender sender) : ApiController
             filters.StartDateTo,
             filters.EndDateFrom,
             filters.EndDateTo,
-            filters.Spot is not null ? (Spot)(int)filters.Spot : null);
+            filters.SpotId);
 
         var result = await sender.Send(query, ct);
 
@@ -76,7 +76,7 @@ public sealed class WorkOrdersController(ISender sender) : ApiController
     {
         var result = await sender.Send(
             new CreateWorkOrderCommand(
-            (Spot)(int)request.Spot,
+            request.SpotId,
             request.VehicleId,
             request.StartAtUtc,
             request.RepairTaskIds,
@@ -103,7 +103,7 @@ public sealed class WorkOrdersController(ISender sender) : ApiController
         var command = new RelocateWorkOrderCommand(
             workOrderId,
             request.NewStartAtUtc,
-            (Spot)(int)request.NewSpot);
+            request.NewSpotId);
 
         var result = await sender.Send(command, ct);
 

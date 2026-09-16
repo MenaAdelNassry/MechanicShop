@@ -19,7 +19,7 @@ public sealed record GetWorkOrdersQuery(
     DateTime? StartDateTo = null,
     DateTime? EndDateFrom = null,
     DateTime? EndDateTo = null,
-    Spot? Spot = null
+    Guid? SpotId = null
 ) : ICachedQuery<Result<PaginatedList<WorkOrderListItemDto>>>
 {
     public string CacheKey =>
@@ -33,7 +33,7 @@ public sealed record GetWorkOrdersQuery(
         $":sdt:{StartDateTo?.ToString("yyyyMMdd") ?? "-"}" +
         $":edf:{EndDateFrom?.ToString("yyyyMMdd") ?? "-"}" +
         $":edt:{EndDateTo?.ToString("yyyyMMdd") ?? "-"}" +
-        $":sp:{Spot?.ToString() ?? "-"}";
+        $":sp:{SpotId?.ToString() ?? "-"}";
 
     public TimeSpan Expiration => TimeSpan.FromMinutes(5);
 

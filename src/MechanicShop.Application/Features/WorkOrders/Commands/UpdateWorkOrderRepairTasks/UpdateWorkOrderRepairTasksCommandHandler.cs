@@ -67,7 +67,7 @@ public sealed class UpdateWorkOrderRepairTasksCommandHandler(
 
         // 4. Check for spot conflict
         var isSpotBusy = await scheduleReadStore.HasSpotConflictAsync(
-            workOrder.Spot,
+            workOrder.SpotId,
             startAtUtc,
             endAtUtc,
             excludeWorkOrderId: workOrder.Id,

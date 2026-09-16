@@ -7,13 +7,13 @@ namespace MechanicShop.Infrastructure.Data.ReadStores;
 
 public sealed class WorkOrderScheduleReadStore(IAppDbContext context) : IWorkOrderScheduleReadStore
 {
-    public async Task<bool> HasSpotConflictAsync(Spot spot, DateTimeOffset startAt, DateTimeOffset endAt, Guid? excludeWorkOrderId = default, CancellationToken ct = default)
+    public async Task<bool> HasSpotConflictAsync(Guid spotId, DateTimeOffset startAt, DateTimeOffset endAt, Guid? excludeWorkOrderId = default, CancellationToken ct = default)
     {
         return await context.WorkOrders
             .AsNoTracking()
             .AnyAsync(
                 wo =>
-                wo.Spot == spot &&
+                wo.SpotId == spotId &&
                 wo.State != WorkOrderState.Cancelled &&
                 wo.StartAtUtc < endAt &&
                 wo.EndAtUtc > startAt &&

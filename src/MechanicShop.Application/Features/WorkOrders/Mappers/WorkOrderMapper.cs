@@ -6,8 +6,6 @@ using MechanicShop.Domain.Customers.Vehicles;
 using MechanicShop.Domain.Employees;
 using MechanicShop.Domain.Workorders;
 
-using static MechanicShop.Application.Common.Errors.ApplicationErrors;
-
 namespace MechanicShop.Application.Features.WorkOrders.Mappers;
 
 public static class WorkOrderMapper
@@ -22,7 +20,8 @@ public static class WorkOrderMapper
         return new WorkOrderDto
         {
             WorkOrderId = workOrder.Id,
-            Spot = workOrder.Spot,
+            SpotId = workOrder.SpotId,
+            SpotName = workOrder.Spot?.Name ?? string.Empty,
             StartAtUtc = workOrder.StartAtUtc,
             EndAtUtc = workOrder.EndAtUtc,
             Labor = laborEntity?.ToDto(),
@@ -52,10 +51,11 @@ public static class WorkOrderMapper
         return new WorkOrderListItemDto
         {
             WorkOrderId = entity.Id,
-            Spot = entity.Spot,
+            SpotId = entity.SpotId,
+            SpotName = entity.Spot?.Name ?? string.Empty,
             StartAtUtc = entity.StartAtUtc,
             EndAtUtc = entity.EndAtUtc,
-            Vehicle = entity.Vehicle!.ToDto(),
+            Vehicle = entity.Vehicle?.ToDto(),
             Labor = entity.Labor is null ? null : $"{entity.Labor.Name.FullName}",
             State = entity.State,
             RepairTasks = entity.RepairTasks.Select(rt => rt.Name).ToList()

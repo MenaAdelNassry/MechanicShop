@@ -11,7 +11,8 @@ namespace MechanicShop.Application.Features.WorkOrders.Commands.CancelWorkOrder;
 
 public sealed class CancelWorkOrderCommandHandler(
     ILogger<CancelWorkOrderCommandHandler> logger,
-    IAppDbContext context)
+    IAppDbContext context,
+    TimeProvider timeProvider)
     : IRequestHandler<CancelWorkOrderCommand, Result<Updated>>
 {
     public async Task<Result<Updated>> Handle(CancelWorkOrderCommand command, CancellationToken ct)
@@ -27,7 +28,7 @@ public sealed class CancelWorkOrderCommandHandler(
             return ApplicationErrors.WorkOrders.NotFound;
         }
 
-        var cancelResult = workOrder.Cancel();
+        var cancelResult = workOrder.Cancel(timeProvider);
         if (cancelResult.IsError)
         {
             logger.LogError("Cancellation failed for WorkOrder '{WorkOrderId}'. Current status is {Status}.", workOrder.Id, workOrder.State);

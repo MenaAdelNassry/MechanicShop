@@ -14,5 +14,5 @@ public record WorkOrderFilterRequest
     public DateTime? StartDateTo { get; set; }
     public DateTime? EndDateFrom { get; set; }
     public DateTime? EndDateTo { get; set; }
-    public Spot? Spot { get; set; }
+    public Guid? SpotId { get; set; }
 }

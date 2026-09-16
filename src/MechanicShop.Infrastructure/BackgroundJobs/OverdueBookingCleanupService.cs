@@ -70,7 +70,7 @@ public class OverdueBookingCleanupService(
                 {
                     foreach (var wo in overdue)
                     {
-                        var result = wo.Cancel();
+                        var result = wo.Cancel(dateTime);
                         if (result.IsError)
                         {
                             logger.LogWarning("Failed to cancel WorkOrder {Id}: {Error}", wo.Id, result.Errors);

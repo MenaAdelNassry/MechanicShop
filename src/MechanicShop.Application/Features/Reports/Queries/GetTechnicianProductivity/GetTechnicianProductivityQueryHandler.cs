@@ -136,8 +136,8 @@ public sealed class GetTechnicianProductivityQueryHandler(IAppDbContext context,
         if (end <= start) return 0.0;
 
         var totalMinutes = 0.0;
-        var startDate = DateOnly.FromDateTime(start.LocalDateTime);
-        var endDate = DateOnly.FromDateTime(end.LocalDateTime);
+        var startDate = DateOnly.FromDateTime(start.DateTime);
+        var endDate = DateOnly.FromDateTime(end.DateTime);
 
         for (var date = startDate; date <= endDate; date = date.AddDays(1))
         {

@@ -21,11 +21,11 @@ namespace MechanicShop.Application.Features.WorkOrders.Policies
         public TimeOnly ClosingTime => _settings.ClosingTime;
         public TimeZoneInfo WorkshopTimeZone => TimeZoneInfo.FindSystemTimeZoneById(_settings.TimeZone ?? "Egypt Standard Time");
 
-        public async Task<Result<Success>> CheckSpotAvailabilityAsync(Spot spot, DateTime startAt, DateTime endAt, Guid? excludeWorkOrderId = null, CancellationToken ct = default)
+        public async Task<Result<Success>> CheckSpotAvailabilityAsync(Guid spotId, DateTime startAt, DateTime endAt, Guid? excludeWorkOrderId = null, CancellationToken ct = default)
         {
             var isOccupied = await _context.WorkOrders.AsNoTracking().AnyAsync(
                 a =>
-                a.Spot == spot &&
+                a.SpotId == spotId &&
                 a.StartAtUtc < endAt &&
                 a.EndAtUtc > startAt &&
                 (!excludeWorkOrderId.HasValue || a.Id != excludeWorkOrderId.Value),

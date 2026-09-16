@@ -40,6 +40,7 @@ public sealed class GetDailyScheduleQueryHandler(
             .Where(w =>
                 w.StartAtUtc < utcEnd &&
                 w.EndAtUtc > utcStart &&
+                w.State != WorkOrderState.Cancelled &&
                 (query.LaborId == null || w.LaborId == query.LaborId))
             .Include(w => w.RepairTasks)
             .Include(w => w.Vehicle)
@@ -54,10 +55,16 @@ public sealed class GetDailyScheduleQueryHandler(
 
         var spotDtos = new List<SpotDto>();
 
-        foreach (var spot in Enum.GetValues<Spot>())
+        var spots = await context.ServiceBays
+            .AsNoTracking()
+            .Where(sb => sb.IsActive)
+            .OrderBy(sb => sb.Name)
+            .ToListAsync(ct);
+
+        foreach (var spot in spots)
         {
             var woBySpot = workOrders
-                .Where(w => w.Spot == spot)
+                .Where(w => w.SpotId == spot.Id)
                 .OrderBy(w => w.StartAtUtc)
                 .ToList();
 
@@ -87,7 +94,7 @@ public sealed class GetDailyScheduleQueryHandler(
                 occupiedRanges.Add(new OccupiedRangeDto
                 {
                     WorkOrderId = wo.Id,
-                    Spot = spot,
+                    SpotName = spot.Name,
                     StartSlotIndex = startSlotIndex,
                     EndSlotIndex = endSlotIndex,
                     Vehicle = FormatVehicleInfo(wo.Vehicle!),
@@ -98,11 +105,7 @@ public sealed class GetDailyScheduleQueryHandler(
                 });
             }
 
-            spotDtos.Add(new SpotDto
-            {
-                Spot = spot,
-                OccupiedRanges = occupiedRanges
-            });
+            spotDtos.Add(new SpotDto(spot.Id, spot.Name, occupiedRanges));
         }
 
         return new ScheduleDto

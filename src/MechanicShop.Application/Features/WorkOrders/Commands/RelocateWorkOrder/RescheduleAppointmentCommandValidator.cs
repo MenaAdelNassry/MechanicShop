@@ -13,13 +13,13 @@ public sealed class RescheduleAppointmentCommandValidator : AbstractValidator<Re
             .WithErrorCode("WorkOrderId_Required")
             .WithMessage("WorkOrderId is required.");
 
+        RuleFor(x => x.NewSpotId)
+            .NotEmpty()
+            .WithErrorCode("NewSpotId_Required")
+            .WithMessage("NewSpotId is required.");
+
         RuleFor(x => x.NewStartAt)
             .GreaterThan(_ => DateTimeOffset.UtcNow)
             .WithMessage("New start time must be in the future.");
-
-        RuleFor(x => x.NewSpot)
-            .IsInEnum()
-            .WithErrorCode("Spot_Invalid")
-            .WithMessage($"Spot must be a valid Spot value: [{string.Join(", ", Enum.GetNames<Spot>())}].");
     }
 }

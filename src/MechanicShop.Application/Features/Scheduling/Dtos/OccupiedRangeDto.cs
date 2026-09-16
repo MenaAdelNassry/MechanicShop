@@ -7,7 +7,7 @@ namespace MechanicShop.Application.Features.Scheduling.Dtos;
 public sealed record OccupiedRangeDto
 {
     public Guid WorkOrderId { get; init; }
-    public Spot Spot { get; init; }
+    public string SpotName { get; init; } = string.Empty;
     public int StartSlotIndex { get; init; }
     public int EndSlotIndex { get; init; }
     public string? Vehicle { get; init; }

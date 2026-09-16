@@ -10,6 +10,10 @@ public sealed class CreateWorkOrderCommandValidator : AbstractValidator<CreateWo
             .NotEmpty()
             .WithMessage("VehicleId is required.");
 
+        RuleFor(request => request.SpotId)
+            .NotEmpty()
+            .WithMessage("SpotId is required.");
+
         RuleFor(request => request.StartAt)
             .GreaterThan(_ => DateTimeOffset.UtcNow)
             .WithMessage("StartAt must be in the future.");
@@ -23,10 +27,5 @@ public sealed class CreateWorkOrderCommandValidator : AbstractValidator<CreateWo
         RuleFor(request => request.LaborId)
             .Must(laborId => laborId is null || laborId != Guid.Empty)
             .WithMessage("If provided, LaborId must not be empty.");
-
-        RuleFor(x => x.Spot)
-            .IsInEnum()
-            .WithErrorCode("Spot_Invalid")
-            .WithMessage("Spot must be a valid Spot value. [A, B, C, D]");
     }
 }

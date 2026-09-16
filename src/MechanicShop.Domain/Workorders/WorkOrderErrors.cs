@@ -8,6 +8,9 @@ public static class WorkOrderErrors
     public static readonly Error WorkOrderIdRequired =
         Error.Validation("WorkOrder.Id.Required", "WorkOrder Id is required.");
 
+    public static readonly Error SpotIdRequired =
+        Error.Validation("WorkOrder.SpotId.Required", "Spot Id is required.");
+
     public static readonly Error VehicleIdRequired =
         Error.Validation("WorkOrder.VehicleId.Required", "Vehicle Id is required.");
 
