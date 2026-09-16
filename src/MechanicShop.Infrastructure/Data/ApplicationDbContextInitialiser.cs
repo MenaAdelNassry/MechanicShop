@@ -263,13 +263,17 @@ public class ApplicationDbContextInitialiser(
         seededOrders.Add(wo1);
 
         // ?????? ????? ????? ?????
+        // 1. ????? ??? ID ?????
+        var invoiceId = Guid.CreateVersion7();
+
+        // 2. ????? ??? invoiceId ??????? ?????? ???????? (??? Guid.Empty)
         var invoice1 = Invoice.Create(
-            Guid.CreateVersion7(),
+            invoiceId,
             wo1.Id,
             [
-                InvoiceLineItem.Create(Guid.Empty, 1, $"Service: {oilTask.Name}", 1, oilTask.LaborCost).Value,
-                InvoiceLineItem.Create(Guid.Empty, 2, "Synthetic 5W-30 Oil", 1, 45.00m).Value,
-                InvoiceLineItem.Create(Guid.Empty, 3, "OEM Oil Filter", 1, 15.00m).Value
+                InvoiceLineItem.Create(invoiceId, 1, $"Service: {oilTask.Name}", 1, oilTask.LaborCost).Value,
+        InvoiceLineItem.Create(invoiceId, 2, "Synthetic 5W-30 Oil", 1, 45.00m).Value,
+        InvoiceLineItem.Create(invoiceId, 3, "OEM Oil Filter", 1, 15.00m).Value
             ],
             discountAmount: 0m,
             _timeProvider).Value;
@@ -371,6 +375,12 @@ public class ApplicationDbContextInitialiser(
             bays[2].Id,
             ToWorkOrderTasks([tireTask], invItems)).Value;
         seededOrders.Add(wo7);
+
+        // ??? ????? ??????? ??? ?? ???? ??????? ??? ??? Seed:
+        foreach (var wo in seededOrders)
+        {
+            wo.ClearDomainEvents();
+        }
 
         _context.WorkOrders.AddRange(seededOrders);
         await _context.SaveChangesAsync();
