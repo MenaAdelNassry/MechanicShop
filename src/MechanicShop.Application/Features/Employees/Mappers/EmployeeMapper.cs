@@ -5,14 +5,15 @@ namespace MechanicShop.Application.Features.Employees.Mappers;
 
 public static class EmployeeMapper
 {
-    public static EmployeeDto ToDto(this Employee employee)
+    public static EmployeeDto ToDto(this Employee employee, string email = "")
     {
         return new EmployeeDto
         {
             EmployeeId = employee.Id,
             Name = employee.Name.FullName,
             PhoneNumber = employee.PhoneNumber.Value,
-            Role = employee.Role.ToString()
+            Role = employee.Role.ToString(),
+            Email = email
         };
     }
 

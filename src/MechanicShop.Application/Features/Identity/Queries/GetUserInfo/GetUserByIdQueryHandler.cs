@@ -4,13 +4,15 @@ using MechanicShop.Domain.Common.Results;
 
 using MediatR;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace MechanicShop.Application.Features.Identity.Queries.GetUserInfo;
 
 public sealed class GetUserByIdQueryHandler(
     ILogger<GetUserByIdQueryHandler> logger,
-    IIdentityService identityService)
+    IIdentityService identityService,
+    IAppDbContext context)
     : IRequestHandler<GetUserByIdQuery, Result<AppUserDto>>
 {
     public async Task<Result<AppUserDto>> Handle(GetUserByIdQuery request, CancellationToken ct)
@@ -30,6 +32,16 @@ public sealed class GetUserByIdQueryHandler(
             return getUserByIdResult.Errors;
         }
 
-        return getUserByIdResult.Value;
+        var identityUser = getUserByIdResult.Value;
+        var employee = await context.Employees
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.IdentityUserId.ToString() == identityUser.UserId, ct);
+
+        return new AppUserDto(
+            identityUser.UserId,
+            identityUser.Email,
+            identityUser.Roles,
+            employee?.Id,
+            employee != null ? $"{employee.Name.FirstName} {employee.Name.LastName}" : identityUser.Email);
     }
 }
