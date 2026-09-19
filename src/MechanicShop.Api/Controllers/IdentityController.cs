@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-using Asp.Versioning;
+﻿using Asp.Versioning;
 
 using MechanicShop.Api.Extensions;
 using MechanicShop.Api.Requests.Identity;
@@ -16,7 +14,6 @@ using MechanicShop.Application.Features.Identity.Queries.RefreshTokens;
 using MediatR;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MechanicShop.Api.Controllers;

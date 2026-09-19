@@ -7,7 +7,6 @@ using MechanicShop.Application.Features.Billing.Commands.IssueInvoice;
 using MechanicShop.Application.Features.Billing.Commands.ProcessStripeWebhook;
 using MechanicShop.Application.Features.Billing.Commands.RecordPayment;
 using MechanicShop.Application.Features.Billing.Dtos;
-using MechanicShop.Application.Features.Billing.Queries.GetDailyCashDrawerSummary;
 using MechanicShop.Application.Features.Billing.Queries.GetInvoiceById;
 using MechanicShop.Application.Features.Billing.Queries.GetInvoicePdf;
 using MechanicShop.Application.Features.Billing.Queries.GetInvoices;

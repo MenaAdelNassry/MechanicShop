@@ -62,7 +62,7 @@ public sealed class RepairTasksController(ISender sender) : ApiController
         var result = await sender.Send(command, ct);
 
         return result.Match(
-            response => CreatedAtRoute("GetRepairTaskById", new { repairTaskId = response.OriginalRepairTaskId }, response),
+            response => CreatedAtRoute("GetRepairTaskById", new { repairTaskId = response.Id }, response),
             Problem);
     }
 

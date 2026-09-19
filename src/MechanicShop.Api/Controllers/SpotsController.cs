@@ -43,7 +43,7 @@ public sealed class SpotsController(ISender sender) : ApiController
     public async Task<IActionResult> Create([FromBody] CreateSpotRequest request, CancellationToken ct)
     {
         var result = await sender.Send(new CreateSpotCommand(request.Name, request.Description), ct);
-        return result.Match(bay => Ok(bay), Problem);
+        return result.Match(Ok, Problem);
     }
 
     [HttpPut("{id:guid}")]
